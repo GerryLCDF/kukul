@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { BookOpen } from 'lucide-react'
 import { animations } from '../animations/registry'
 import type { AnimationEntry, ControlSettings } from '../types'
 
@@ -62,6 +63,9 @@ export default function IndexPage() {
           <div className="topbar-title">Kukul</div>
           <div className="topbar-sub">UI motion lab · framer-motion + react</div>
         </div>
+        <a className="topbar-link" href="#/docs">
+          <BookOpen size={15} /> Documentación
+        </a>
       </div>
 
       <div className="hero">
@@ -72,6 +76,9 @@ export default function IndexPage() {
           distintos proyectos, acumulé una biblioteca amplia y decidí compartirla con la
           comunidad. Son gratuitas, de código abierto y completamente personalizables.
         </p>
+        <a className="install-line" href="#/docs">
+          <code>npm install kukul</code>
+        </a>
       </div>
 
       <div className="grid">

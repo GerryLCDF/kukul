@@ -33,6 +33,47 @@ Para **ver el HTML estático**: abre `dist/index.html` directamente en el navega
 (double click). Para **compartir** un enlace por internet necesitas servirlo
 (`npm run preview`, o súbelo a Vercel/Netlify/GitHub Pages).
 
+## Usar como librería npm
+
+El proyecto también compila como **paquete npm** (build con Vite *lib mode*), para
+que tu equipo la instale de una vez y use los componentes directamente:
+
+```bash
+npm install kukul framer-motion lucide-react react react-dom
+```
+
+```tsx
+import { Counter, ComponentList, animationDefaults } from 'kukul'
+
+export default function App() {
+  return (
+    <>
+      <Counter settings={{ target: 5000 }} />
+      <ComponentList />
+    </>
+  )
+}
+```
+
+- Todos los componentes reciben `settings` **opcional**: si no pasas nada usan los
+  valores por defecto de su registro. Puedes cambiar solo lo que te interese
+  (`settings={{ flat: true }}`).
+- Componentes exportados: `FadeInGrow`, `StaggerList`, `MagneticButton`, `Counter`,
+  `Modal`, `ToggleSwitch`, `RadialMenu`, `Knob`, `SliderVertical`, `ComponentList`.
+- Utilidades: `allAnimations` (el registro completo), `getAnimation(id)` y
+  `animationDefaults(id)` (los valores por defecto de una animación).
+- Tipos: `AnimationEntry`, `ControlSettings`, `ControlDef`… todos exportados.
+
+Recompilación de la librería:
+
+```bash
+npm run build:lib    # genera dist/ (ESM + CJS + .d.ts)
+npm publish          # publica (ejecuta build:lib automáticamente vía prepublishOnly)
+```
+
+> Las dependencias (`react`, `framer-motion`, `lucide-react`) quedan **fuera** del
+> bundle: son `peerDependencies`, las instala el consumidor.
+
 ## Estructura
 
 ```

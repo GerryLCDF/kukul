@@ -94,6 +94,25 @@ pre code {
   color: var(--text-dim);
 }
 
+.topbar-link {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 13px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.topbar-link:hover {
+  border-color: var(--accent);
+  background: rgba(0, 168, 107, 0.1);
+}
+
 .hero {
   margin-bottom: 40px;
 }
@@ -110,6 +129,27 @@ pre code {
 .hero p {
   color: var(--text-dim);
   margin: 0;
+}
+
+.install-line {
+  display: inline-block;
+  margin-top: 18px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+  transition: border-color 0.2s;
+}
+
+.install-line:hover {
+  border-color: var(--accent);
+}
+
+.install-line code {
+  background: none;
+  padding: 0;
+  color: var(--green);
+  font-size: 13px;
 }
 
 .grid {
@@ -255,6 +295,18 @@ pre code {
   color: var(--text-dim);
   margin: 0;
   font-size: 15px;
+}
+
+.page-head .code-block {
+  margin-left: auto;
+  max-width: 420px;
+  flex-shrink: 0;
+}
+
+.page-head .code-block pre {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 12.5px;
 }
 
 .stage {

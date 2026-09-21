@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { animations } from './animations/registry'
 import IndexPage from './components/IndexPage'
 import AnimationPage from './components/AnimationPage'
+import DocsPage from './components/DocsPage'
 
 function getHash(): string {
   return window.location.hash.replace(/^#\/?/, '')
@@ -23,6 +24,9 @@ export default function App() {
 
   if (entry) {
     return <AnimationPage entry={entry} />
+  }
+  if (route === 'docs') {
+    return <DocsPage />
   }
   return <IndexPage />
 }
