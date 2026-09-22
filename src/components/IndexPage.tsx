@@ -57,7 +57,7 @@ function AnimationCard({ a }: { a: AnimationEntry }) {
 export default function IndexPage() {
   const [copied, setCopied] = useState(false)
 
-  const install = 'npm install kukul'
+  const install = 'npm install @gerardolcdf/kukul framer-motion lucide-react react react-dom'
 
   const copy = async () => {
     if (!navigator.clipboard) return

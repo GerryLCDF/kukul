@@ -6,7 +6,7 @@ import type { AnimationEntry } from '../types'
 import { renderMarkdown } from '../utils/markdown'
 import CodeBlock from './CodeBlock'
 
-const INSTALL = 'npm install kukul framer-motion lucide-react react react-dom'
+const INSTALL = 'npm install @gerardolcdf/kukul framer-motion lucide-react react react-dom'
 
 const sections: { title: string; body: string }[] = [
   {
@@ -14,7 +14,7 @@ const sections: { title: string; body: string }[] = [
     body: `Kukul se publica como paquete **npm**. Dentro de tu proyecto de React ejecuta:
 
 \`\`\`bash
-npm install kukul framer-motion lucide-react react react-dom
+npm install @gerardolcdf/kukul framer-motion lucide-react react react-dom
 \`\`\`
 
 **Kukul** es la librería; los otros paquetes son sus *dependencias* (React, framer-motion y
@@ -29,7 +29,7 @@ mantiene el bundle pequeño.
     body: `Importa el componente que quieras y úsalo como un componente normal de React:
 
 \`\`\`tsx
-import { Counter, ComponentList, animationDefaults } from 'kukul'
+import { Counter, ComponentList, animationDefaults } from '@gerardolcdf/kukul'
 
 export default function App() {
   return (
@@ -45,7 +45,7 @@ Todas las animaciones reciben **\`settings\` opcional**: si no lo pasas usan los
 por defecto, y puedes sobrescribir solo lo que te interese:
 
 \`\`\`tsx
-import { Knob } from 'kukul'
+import { Knob } from '@gerardolcdf/kukul'
 
 // solo cambia el color, el resto usa el default
 <Knob settings={{ flat: true }} />
@@ -69,9 +69,9 @@ Tipos exportados: \`AnimationEntry\`, \`ControlSettings\`, \`ControlDef\`.`,
 actualiza con un comando:
 
 \`\`\`bash
-npm update kukul
+npm update @gerardolcdf/kukul
 # o para una versión exacta
-npm install kukul@^1.0.0
+npm install @gerardolcdf/kukul@^1.0.0
 \`\`\`
 
 La librería usa **semver**:
@@ -86,7 +86,7 @@ Mientras la API (\`settings\` y los nombres de export) no cambie, actualizar tu
   {
     title: 'Contribuir',
     body: `El proyecto es **open source** en
-\`https://github.com/GerryLCDF/kukul\`.
+\`https://github.com/gerardolcdf/kukul\`.
 
 - Cada animación vive en \`src/animations/<id>/index.tsx\`.
 - Para añadir una nueva: crea la carpeta, exporta el componente y un objeto
@@ -110,7 +110,7 @@ const pascal = (id: string) =>
 function useCase(entry: AnimationEntry) {
   const name = pascal(entry.id)
   return [
-    `import { ${name} } from 'kukul'`,
+    `import { ${name} } from '@gerardolcdf/kukul'`,
     '',
     'export default function App() {',
     '  return (',
