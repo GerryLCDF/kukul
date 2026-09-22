@@ -1,6 +1,5 @@
 {
-  "name": "kukul",
-  "private": true,
+  "name": "@gerardolcdf/kukul",
   "version": "1.0.0",
   "type": "module",
   "description": "Colección de animaciones de UI con React + Framer Motion, documentadas y configurables.",
