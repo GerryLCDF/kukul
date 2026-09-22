@@ -30,12 +30,55 @@ function pointerAngle(e: PointerEvent<HTMLElement>, cx: number, cy: number) {
   return ((Math.atan2(dy, dx) * 180) / Math.PI + 360) % 360
 }
 
-export default function Knob({ settings }: { settings: ControlSettings }) {
-  const { stepped, steps, disabled, glow, colorPrimary, colorAccent, flat, noShadow } = settingsOf(settings)
+export interface KnobProps {
+  settings: ControlSettings
+  /** Valor actual 0–100 (controlado; sin él, usa estado interno) */
+  value?: number
+  /** Etiqueta opcional bajo el valor (por defecto "Valor"/"Opción") */
+  label?: string
+  /** aria-label de la perilla */
+  ariaLabel?: string
+  /** Diámetro visual en px */
+  size?: number
+  /** Desactivada (no editable) */
+  disabled?: boolean
+  /** Notifica cada cambio de valor */
+  onChange?: (value: number) => void
+}
+
+export default function Knob({
+  settings,
+  value,
+  label,
+  ariaLabel = 'Perilla',
+  size = SIZE,
+  disabled: disabledOverride,
+  onChange,
+}: KnobProps) {
+  const {
+    stepped,
+    steps,
+    disabled: settingsDisabled,
+    glow,
+    colorPrimary,
+    colorAccent,
+    flat,
+    noShadow,
+  } = settingsOf(settings)
+  const disabled = disabledOverride ?? settingsDisabled
   const zoneRef = useRef<HTMLDivElement>(null)
   const dragging = useRef(false)
   const dragRef = useRef<{ prev: number | null; cont: number }>({ prev: null, cont: 0 })
   const [v, setV] = useState(55)
+  const current = value ?? v
+
+  const commit = useCallback(
+    (next: number) => {
+      setV(next)
+      onChange?.(next)
+    },
+    [onChange],
+  )
 
   const snap = useCallback(
     (frac: number) => (stepped ? Math.round(frac * (steps - 1)) / (steps - 1) : frac),
@@ -65,9 +108,9 @@ export default function Knob({ settings }: { settings: ControlSettings }) {
       d.prev = raw
 
       const frac = Math.min(1, Math.max(0, (d.cont - MIN_ANG) / SWEEP))
-      setV(snap(frac) * 100)
+      commit(snap(frac) * 100)
     },
-    [snap],
+    [snap, commit],
   )
 
   const onDown = (e: PointerEvent<HTMLElement>) => {
@@ -93,13 +136,14 @@ export default function Knob({ settings }: { settings: ControlSettings }) {
     const dir = e.key === 'ArrowRight' || e.key === 'ArrowUp' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? -1 : 0
     if (!dir) return
     e.preventDefault()
-    setV((prev) => Math.min(100, Math.max(0, prev + dir * delta)))
-    if (stepped) setV((prev) => Math.round(prev / delta) * delta)
+    let next = Math.min(100, Math.max(0, current + dir * delta))
+    if (stepped) next = Math.round(next / delta) * delta
+    commit(next)
   }
 
-  const frac = v / 100
+  const frac = current / 100
   const idx = Math.round(frac * (steps - 1))
-  const label = stepped ? `${idx + 1} de ${steps}` : `${Math.round(v)}`
+  const valueLabel = stepped ? `${idx + 1} de ${steps}` : `${Math.round(current)}`
   const dim = disabled
 
   const trackBorder = dim ? '#3a3a3a' : alpha(colorPrimary, 0.6)
@@ -124,10 +168,10 @@ export default function Knob({ settings }: { settings: ControlSettings }) {
       <div
         ref={zoneRef}
         role="slider"
-        aria-label="Perilla"
+        aria-label={ariaLabel}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-valuenow={Math.round(v)}
+        aria-valuenow={Math.round(current)}
         aria-disabled={disabled}
         onPointerDown={onDown}
         onPointerMove={onMove}
@@ -136,8 +180,8 @@ export default function Knob({ settings }: { settings: ControlSettings }) {
         onKeyDown={onKey}
         tabIndex={disabled ? -1 : 0}
         style={{
-          width: SIZE,
-          height: SIZE,
+          width: size,
+          height: size,
           borderRadius: '50%',
           background: dim ? '#1e1e1e' : '#1b1b1b',
           border: `2px solid ${trackBorder}`,
@@ -183,7 +227,7 @@ export default function Knob({ settings }: { settings: ControlSettings }) {
             left: '50%',
             top: '50%',
             width: 3,
-            height: SIZE / 2 - 26,
+            height: size / 2 - 26,
             borderRadius: 3,
             background: lineColor,
             transform: `translate(-50%, -100%) rotate(${fracToRot(frac)}deg)`,
@@ -217,10 +261,10 @@ export default function Knob({ settings }: { settings: ControlSettings }) {
             minWidth: 92,
           }}
         >
-          {label}
+          {valueLabel}
         </div>
         <div style={{ fontSize: 12, color: dim ? '#666' : '#9aa0a3' }}>
-          {stepped ? 'Opción' : 'Valor'}
+          {label ?? (stepped ? 'Opción' : 'Valor')}
         </div>
       </div>
     </div>

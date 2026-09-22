@@ -8,10 +8,10 @@ import MagneticButtonBase from './animations/magnetic-button'
 import CounterBase from './animations/counter'
 import ModalBase from './animations/modal'
 import ToggleSwitchBase from './animations/toggle-switch'
-import RadialMenuBase from './animations/radial-menu'
-import KnobBase from './animations/knob'
+import RadialMenuBase, { type RadialMenuProps } from './animations/radial-menu'
+import KnobBase, { type KnobProps } from './animations/knob'
 import SliderVerticalBase from './animations/slider-vertical'
-import ComponentListBase from './animations/component-list'
+import ComponentListBase, { type ComponentListProps } from './animations/component-list'
 
 function defaultsOf(entry: AnimationEntry): ControlSettings {
   const settings: ControlSettings = {}
@@ -21,17 +21,16 @@ function defaultsOf(entry: AnimationEntry): ControlSettings {
   return settings
 }
 
-interface AnimationProps {
-  settings?: Partial<ControlSettings>
-}
+export type AnimationProps<P = {}> = { settings?: Partial<ControlSettings> } & P
 
-function withSettings(
-  Component: ComponentType<{ settings: ControlSettings }>,
+function withSettings<P>(
+  Component: ComponentType<P & { settings: ControlSettings }>,
   defaults: ControlSettings,
-): ComponentType<AnimationProps> {
-  return function KukulComponent({ settings }: AnimationProps) {
+): ComponentType<AnimationProps<P>> {
+  return function KukulComponent(props: AnimationProps<P>) {
+    const { settings, ...rest } = props
     const merged: ControlSettings = Object.assign({}, defaults, settings)
-    return <Component settings={merged} />
+    return <Component {...(rest as P)} settings={merged} />
   }
 }
 
@@ -41,10 +40,10 @@ export const MagneticButton = withSettings(MagneticButtonBase, defaultsOf(animat
 export const Counter = withSettings(CounterBase, defaultsOf(animations.find(a => a.id === 'counter')!))
 export const Modal = withSettings(ModalBase, defaultsOf(animations.find(a => a.id === 'modal')!))
 export const ToggleSwitch = withSettings(ToggleSwitchBase, defaultsOf(animations.find(a => a.id === 'toggle-switch')!))
-export const RadialMenu = withSettings(RadialMenuBase, defaultsOf(animations.find(a => a.id === 'radial-menu')!))
-export const Knob = withSettings(KnobBase, defaultsOf(animations.find(a => a.id === 'knob')!))
-export const SliderVertical = withSettings(SliderVerticalBase, defaultsOf(animations.find(a => a.id === 'slider-vertical')!))
-export const ComponentList = withSettings(ComponentListBase, defaultsOf(animations.find(a => a.id === 'component-list')!))
+export const RadialMenu = withSettings<Omit<RadialMenuProps, 'settings'>>(RadialMenuBase, defaultsOf(animations.find(a => a.id === 'radial-menu')!))
+export const Knob = withSettings<Omit<KnobProps, 'settings'>>(KnobBase, defaultsOf(animations.find(a => a.id === 'knob')!))
+export const SliderVertical = withSettings<{}>(SliderVerticalBase, defaultsOf(animations.find(a => a.id === 'slider-vertical')!))
+export const ComponentList = withSettings<Omit<ComponentListProps, 'settings'>>(ComponentListBase, defaultsOf(animations.find(a => a.id === 'component-list')!))
 
 export const allAnimations = animations
 export const getAnimation = (id: string): AnimationEntry | undefined =>
@@ -55,4 +54,6 @@ export const animationDefaults = (id: string): ControlSettings => {
 }
 
 export type { AnimationEntry, ControlSettings, ControlDef, DocBlock, AnimationDoc } from './types'
-export type { AnimationProps }
+export type { KnobProps } from './animations/knob'
+export type { RadialMenuItem, RadialMenuProps } from './animations/radial-menu'
+export type { ComponentListItem, ComponentListProps } from './animations/component-list'

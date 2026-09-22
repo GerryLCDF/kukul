@@ -5,7 +5,34 @@ import type { LucideIcon } from 'lucide-react'
 import type { AnimationEntry, ControlSettings } from '../../types'
 import { alpha, grad135 } from '../../utils/color'
 
-type Item = { id: string; name: string; type: string; Icon: LucideIcon }
+export interface ComponentListItem {
+  id: string
+  name: string
+  type: string
+  Icon: LucideIcon
+}
+
+export interface ComponentListProps {
+  settings: ControlSettings
+  /** Columnas de la lista (si no se pasan, usa las de la demo) */
+  items?: ComponentListItem[]
+  /** Título del encabezado */
+  title?: string
+  /** Texto a la derecha del título */
+  subtitle?: string
+  /** Notifica el nuevo orden tras reordenar/eliminar */
+  onReorder?: (ids: string[]) => void
+  /** Notifica al eliminar un elemento */
+  onRemove?: (id: string) => void
+  /** Notifica cambios del estado "oculto" (ids) */
+  onHiddenChange?: (ids: string[]) => void
+  /** Notifica cambios del estado "mute" (ids) */
+  onMutedChange?: (ids: string[]) => void
+  /** Notifica cambios del estado "solo" */
+  onSoloChange?: (id: string | null) => void
+}
+
+type Item = ComponentListItem
 
 const BASE: Item[] = [
   { id: 'player', name: 'Player', type: 'Jugador', Icon: User },
@@ -89,7 +116,17 @@ function IconButton(props: {
   )
 }
 
-export default function ComponentList({ settings }: { settings: ControlSettings }) {
+export default function ComponentList({
+  settings,
+  items = BASE,
+  title = 'Mundo',
+  subtitle = 'escena',
+  onReorder,
+  onRemove,
+  onHiddenChange,
+  onMutedChange,
+  onSoloChange,
+}: ComponentListProps) {
   const {
     count,
     drag,
@@ -110,7 +147,7 @@ export default function ComponentList({ settings }: { settings: ControlSettings 
     flat,
     noShadow,
   } = settingsOf(settings)
-  const [order, setOrder] = useState<string[]>(() => BASE.slice(0, count).map((b) => b.id))
+  const [order, setOrder] = useState<string[]>(() => items.slice(0, count).map((b) => b.id))
   const [hiddenIds, setHiddenIds] = useState<string[]>([])
   const [mutedIds, setMutedIds] = useState<string[]>([])
   const [soloId, setSoloId] = useState<string | null>(null)
@@ -119,35 +156,51 @@ export default function ComponentList({ settings }: { settings: ControlSettings 
 
   useEffect(() => {
     setOrder((prev) => {
-      const base = BASE.slice(0, count).map((b) => b.id)
+      const base = items.slice(0, count).map((b) => b.id)
       const missing = base.filter((id) => !prev.includes(id))
       return missing.length ? [...prev, ...missing] : prev
     })
-  }, [count])
+  }, [count, items])
 
   const visibleCount = order.filter((id) => !hiddenIds.includes(id)).length
-  const byId = new Map(BASE.map((b) => [b.id, b]))
+  const byId = new Map(items.map((b) => [b.id, b]))
   const activeGlow = glow && !noShadow
 
-  const onReorder = (next: string[]) => setOrder(next)
+  const emitOrder = (next: string[]) => {
+    setOrder(next)
+    onReorder?.(next)
+  }
 
   const toggleHidden = (id: string) => {
-    setHiddenIds((h) => (h.includes(id) ? h.filter((x) => x !== id) : [...h, id]))
+    setHiddenIds((h) => {
+      const next = h.includes(id) ? h.filter((x) => x !== id) : [...h, id]
+      onHiddenChange?.(next)
+      return next
+    })
     if (soloId === id) setSoloId(null)
     if (pendingDeleteId === id) setPendingDeleteId(null)
   }
 
   const toggleMuted = (id: string) =>
-    setMutedIds((m) => (m.includes(id) ? m.filter((x) => x !== id) : [...m, id]))
+    setMutedIds((m) => {
+      const next = m.includes(id) ? m.filter((x) => x !== id) : [...m, id]
+      onMutedChange?.(next)
+      return next
+    })
 
-  const toggleSolo = (id: string) => setSoloId((s) => (s === id ? null : id))
+  const toggleSolo = (id: string) => {
+    const next = soloId === id ? null : id
+    setSoloId(next)
+    onSoloChange?.(next)
+  }
 
   const remove = (id: string) => {
-    setOrder((o) => o.filter((x) => x !== id))
+    emitOrder(order.filter((x) => x !== id))
     setHiddenIds((h) => h.filter((x) => x !== id))
     setMutedIds((m) => m.filter((x) => x !== id))
     if (soloId === id) setSoloId(null)
     setPendingDeleteId(null)
+    onRemove?.(id)
   }
 
   const clickDelete = (id: string) => {
@@ -203,14 +256,14 @@ export default function ComponentList({ settings }: { settings: ControlSettings 
           </motion.button>
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 800, fontSize: 15, color: '#0b110d' }}>Mundo</div>
+          <div style={{ fontWeight: 800, fontSize: 15, color: '#0b110d' }}>{title}</div>
           {showCount && (
             <div style={{ fontSize: 12, color: 'rgba(11,17,13,0.72)' }}>
               {visibleCount} de {order.length} componentes
             </div>
           )}
         </div>
-        <span style={{ fontSize: 11, color: 'rgba(11,17,13,0.72)' }}>escena</span>
+        <span style={{ fontSize: 11, color: 'rgba(11,17,13,0.72)' }}>{subtitle}</span>
         {collapsable && collapseRight && (
           <motion.button
             type="button"
@@ -248,7 +301,7 @@ export default function ComponentList({ settings }: { settings: ControlSettings 
         <Reorder.Group
           axis="y"
           values={order}
-          onReorder={onReorder}
+          onReorder={emitOrder}
           style={{
             listStyle: 'none',
             margin: 0,

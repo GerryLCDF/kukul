@@ -17,9 +17,26 @@ import {
 } from 'lucide-react'
 import type { AnimationEntry, ControlSettings } from '../../types'
 
-type Item = { label: string; Icon: LucideIcon; iconName: string; color: string }
+export interface RadialMenuItem {
+  label: string
+  Icon: LucideIcon
+  iconName: string
+  color: string
+}
 
-const items: Item[] = [
+export interface RadialMenuProps {
+  settings: ControlSettings
+  /** Opciones del menú círcular (si no se pasan, usa las de la demo) */
+  items?: RadialMenuItem[]
+  /** Llamada al elegir una opción */
+  onPick?: (item: RadialMenuItem, index: number) => void
+  /** Estado abierto/cerrado controlado (opcional; sin él, interno) */
+  open?: boolean
+  /** Notifica cambios de `open` */
+  onOpenChange?: (open: boolean) => void
+}
+
+const items: RadialMenuItem[] = [
   { label: 'Inicio', Icon: Home, iconName: 'Home', color: '#00a86b' },
   { label: 'Mensajes', Icon: MessageCircle, iconName: 'MessageCircle', color: '#00c98d' },
   { label: 'Cámara', Icon: Camera, iconName: 'Camera', color: '#00ffb2' },
@@ -43,7 +60,7 @@ function itemPos(index: number, count: number) {
 }
 
 interface OptionProps {
-  item: Item
+  item: RadialMenuItem
   index: number
   count: number
   variants: Variants
@@ -222,14 +239,20 @@ function makeVariants(count: number): Variants {
   }
 }
 
-export default function RadialMenu({ settings }: { settings: ControlSettings }) {
+export default function RadialMenu({
+  settings,
+  items: propItems,
+  onPick,
+  open: openProp,
+  onOpenChange,
+}: RadialMenuProps) {
   const solid = !!settings.solid || !!settings.flat
   const glow = !!settings.glow
   const wobble = !!settings.wobble
   const noShadow = !!settings.noShadow
   const centerColor = String(settings.centerColor) || '#216e4b'
   const count = Math.max(1, Math.min(6, Number(settings.count) || 6))
-  const visible = items.slice(0, count)
+  const visible = (propItems ?? items).slice(0, count)
 
   const [open, setOpen] = useState(false)
   const [hover, setHover] = useState<number | null>(null)
@@ -239,9 +262,20 @@ export default function RadialMenu({ settings }: { settings: ControlSettings }) 
 
   useEffect(() => () => window.clearTimeout(timer.current), [])
 
-  const pick = (it: Item) => {
-    setOpen(false)
+  const toggleOpen = (next: boolean) => {
+    setOpen(next)
+    onOpenChange?.(next)
+  }
+
+  const isOpen = openProp ?? open
+
+  const pick = (it: RadialMenuItem, index: number) => {
+    toggleOpen(false)
     setHover(null)
+    if (onPick) {
+      onPick(it, index)
+      return
+    }
     setToast(`${it.label} seleccionado`)
     window.clearTimeout(timer.current)
     timer.current = window.setTimeout(() => setToast(''), 1500)
@@ -277,7 +311,7 @@ export default function RadialMenu({ settings }: { settings: ControlSettings }) 
       </AnimatePresence>
 
       <AnimatePresence>
-        {open &&
+        {isOpen &&
           visible.map((it, i) => (
             <MenuOption
               key={it.label}
@@ -293,7 +327,7 @@ export default function RadialMenu({ settings }: { settings: ControlSettings }) 
               noShadow={noShadow}
               onEnter={() => setHover(i)}
               onLeave={() => setHover((h) => (h === i ? null : h))}
-              onPick={() => pick(it)}
+              onPick={() => pick(it, i)}
             />
           ))}
       </AnimatePresence>
@@ -309,11 +343,11 @@ export default function RadialMenu({ settings }: { settings: ControlSettings }) 
       >
         <motion.button
           className="rm-btn"
-          onClick={() => setOpen((o) => !o)}
+          onClick={() => toggleOpen(!isOpen)}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           animate={{
-            boxShadow: open
+            boxShadow: isOpen
               ? glow
                 ? `0 0 34px ${centerColor}`
                 : noShadow
@@ -328,18 +362,18 @@ export default function RadialMenu({ settings }: { settings: ControlSettings }) 
             width: 68,
             height: 68,
             borderRadius: 999,
-            border: open ? `2px solid ${centerColor}` : '1px solid #353535',
+            border: isOpen ? `2px solid ${centerColor}` : '1px solid #353535',
             background: centerColor,
             cursor: 'pointer',
             display: 'grid',
             placeItems: 'center',
             position: 'relative',
           }}
-          aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
-          aria-expanded={open}
+          aria-label={isOpen ? 'Cerrar menú' : 'Abrir menú'}
+          aria-expanded={isOpen}
         >
           <motion.span
-            animate={{ rotate: open ? 45 : 0 }}
+            animate={{ rotate: isOpen ? 45 : 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 16 }}
             style={{ width: 28, height: 28, position: 'relative', display: 'block' }}
           >
