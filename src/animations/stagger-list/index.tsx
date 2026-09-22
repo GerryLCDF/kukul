@@ -96,8 +96,12 @@ export default function StaggerList({ settings }: { settings: ControlSettings })
 
 function staggerCode(s: ControlSettings): string {
   const { stagger, count, offsetY, colorPrimary, colorAccent, flat } = settingsOf(s)
+  const badgeBg = flat
+    ? `background: '${colorPrimary}',`
+    : `background: 'linear-gradient(135deg, ${colorPrimary}, ${colorAccent})',`
   return [
-    '// contenedor propaga el estado a los hijos',
+    "import { motion, type Variants } from 'framer-motion'",
+    '',
     'const container: Variants = {',
     '  hidden: {},',
     `  show: { transition: { staggerChildren: ${stagger}, delayChildren: 0.1 } },`,
@@ -108,17 +112,35 @@ function staggerCode(s: ControlSettings): string {
     '  show: { opacity: 1, y: 0, scale: 1 },',
     '}',
     '',
-    'const badge: React.CSSProperties = {',
-    flat
-      ? `  background: '${colorPrimary}', // color plano`
-      : `  background: 'linear-gradient(135deg, ${colorPrimary}, ${colorAccent})',`,
-    '}',
+    `const DATA = ['Primero', 'Segundo', 'Tercero']`,
     '',
-    '<motion.ol variants={container} initial="hidden" animate="show">',
-    `    {items.slice(0, ${count}).map((it) => (`,
-    '    <motion.li variants={item}>...</motion.li>',
-    '  ))}',
-    '</motion.ol>',
+    'export default function StaggerList() {',
+    '  return (',
+    '    <motion.ol',
+    '      variants={container}',
+    '      initial="hidden"',
+    '      animate="show"',
+    '      style={{ listStyle: "none", padding: 0, margin: 0 }}',
+    '    >',
+    `      {DATA.slice(0, ${count}).map((d) => (`,
+    '        <motion.li',
+    '          key={d}',
+    '          variants={item}',
+    '          style={{',
+    `            ${badgeBg}`,
+    `            color: '#0b110d',`,
+    '            fontWeight: 700,',
+    '            borderRadius: 12,',
+    '            padding: "14px 18px",',
+    '            marginBottom: 10,',
+    '          }}',
+    '        >',
+    '          {d}',
+    '        </motion.li>',
+    '      ))}',
+    '    </motion.ol>',
+    '  )',
+    '}',
   ].join('\n')
 }
 

@@ -79,26 +79,49 @@ export default function Counter({ settings }: { settings: ControlSettings }) {
 
 function counterCode(s: ControlSettings): string {
   const { target, duration, separator, colorPrimary, colorAccent, flat } = settingsOf(s)
-  const fmtLine = separator
-    ? '    node.textContent = Math.round(v).toLocaleString("es-ES")'
-    : '    node.textContent = String(Math.round(v))'
+  const fmtExpr = separator
+    ? 'Math.round(v).toLocaleString("es-ES")'
+    : 'String(Math.round(v))'
+  const bgLine = flat
+    ? `      background: '${colorPrimary}',`
+    : `      background: 'linear-gradient(90deg, ${colorPrimary}, ${colorAccent})',`
   return [
+    "import { useRef } from 'react'",
     "import { animate } from 'framer-motion'",
     '',
-    `animate(0, ${target}, {`,
-    `  duration: ${duration},`,
-    "  ease: 'easeOut',",
-    '  onUpdate: (v) => {',
-    fmtLine,
-    '  },',
-    '})',
+    'export default function Counter() {',
+    '  const node = useRef<HTMLSpanElement>(null)',
     '',
-    '// número con degradado de marca',
-    flat
-      ? `  background: '${colorPrimary}', // color plano`
-      : `  background: 'linear-gradient(90deg, ${colorPrimary}, ${colorAccent})',`,
-    '  WebkitBackgroundClip: "text",',
-    '  color: "transparent",',
+    '  const run = () => {',
+    '    if (!node.current) return',
+    `    animate(0, ${target}, {`,
+    `      duration: ${duration},`,
+    "      ease: 'easeOut',",
+    '      onUpdate: (v) => {',
+    `        node.current!.textContent = ${fmtExpr}`,
+    '      },',
+    '    })',
+    '  }',
+    '',
+    '  return (',
+    "    <div style={{ textAlign: 'center' }}>",
+    "      <div",
+    '        style={{',
+    '          fontSize: 76,',
+    '          fontWeight: 800,',
+    "          fontFamily: 'JetBrains Mono, monospace',",
+    bgLine,
+    '          WebkitBackgroundClip: "text",',
+    '          backgroundClip: "text",',
+    '          color: "transparent",',
+    '        }}',
+    '      >',
+    "        <span ref={node}>0</span>",
+    '      </div>',
+    "      <button onClick={run}>Volver a contar</button>",
+    '    </div>',
+    '  )',
+    '}',
   ].join('\n')
 }
 

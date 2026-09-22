@@ -61,24 +61,41 @@ export default function ToggleSwitch({ settings }: { settings: ControlSettings }
 
 function toggleCode(s: ControlSettings): string {
   const { stiffness, damping, onColor, accent, size, flat, noShadow } = settingsOf(s)
+  const knob = Math.round(size * 0.42)
+  const padding = Math.max(4, Math.round(size * 0.05))
   return [
-    '<button',
-    '  onClick={() => setOn(!on)}',
-    '  style={{',
+    "import { useState } from 'react'",
+    "import { motion } from 'framer-motion'",
+    '',
+    'export default function ToggleSwitch() {',
+    '  const [on, setOn] = useState(true)',
+    '',
+    '  return (',
+    '    <button',
+    '      onClick={() => setOn((v) => !v)}',
+    '      aria-pressed={on}',
+    '      role="switch"',
+    '      style={{',
     flat
-      ? `    background: on ? '${onColor}' : '#353535', // color plano`
-      : `    background: on ? 'linear-gradient(135deg, ${onColor}, ${accent})' : '#353535',`,
-    '    justifyContent: on ? "flex-end" : "flex-start",',
-    `    width: ${size}, height: ${Math.round(size * 0.52)},`,
-    '    borderRadius: 999,border: "none",cursor: "pointer",',
-    '  }}',
-    '>',
-    '  <motion.span',
-    '    layout',
-    `    transition={{ type: "spring", stiffness: ${stiffness}, damping: ${damping} }}`,
-    `    style={{ width: ${Math.round(size * 0.42)}, height: ${Math.round(size * 0.42)}, background: "#fff"${noShadow ? ', boxShadow: "none"' : ', boxShadow: "0 3px 8px rgba(0,0,0,0.35)"'} }}`,
-    '  />',
-    '</button>',
+      ? `        background: on ? '${onColor}' : '#353535',`
+      : `        background: on ? 'linear-gradient(135deg, ${onColor}, ${accent})' : '#353535',`,
+    `        width: ${size}, height: ${Math.round(size * 0.52)},`,
+    '        borderRadius: 999,',
+    '        border: "none",',
+    '        cursor: "pointer",',
+    `        padding: ${padding},`,
+    '        display: "flex",',
+    '        justifyContent: on ? "flex-end" : "flex-start",',
+    '      }}',
+    '    >',
+    '      <motion.span',
+    '        layout',
+    `        transition={{ type: "spring", stiffness: ${stiffness}, damping: ${damping} }}`,
+    `        style={{ width: ${knob}, height: ${knob}, borderRadius: 999, background: "#fff", display: "block", boxShadow: ${noShadow ? "'none'" : "'0 3px 8px rgba(0,0,0,0.35)'"} }}`,
+    '      />',
+    '    </button>',
+    '  )',
+    '}',
   ].join('\n')
 }
 

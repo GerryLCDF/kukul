@@ -56,6 +56,8 @@ export default function FadeInGrow({ settings }: { settings: ControlSettings }) 
 function fadeCode(s: ControlSettings): string {
   const { stiffness, damping, initialScale, yStart, colorPrimary, colorAccent, flat, noShadow } = settingsOf(s)
   return [
+    "import { motion, type Variants } from 'framer-motion'",
+    '',
     'const card: Variants = {',
     `  hidden: { opacity: 0, scale: ${initialScale}, y: ${yStart} },`,
     '  show: {',
@@ -66,19 +68,27 @@ function fadeCode(s: ControlSettings): string {
     '  },',
     '}',
     '',
-    '<motion.div',
-    '  variants={card}',
-    '  initial="hidden"',
-    '  animate="show"',
-    '  style={{',
+    'export default function FadeInGrow() {',
+    '  return (',
+    '    <motion.div',
+    '      variants={card}',
+    '      initial="hidden"',
+    '      animate="show"',
+    '      style={{',
     flat
-      ? `    background: '${colorPrimary}', // color plano`
-      : `    background: 'linear-gradient(135deg, ${colorPrimary}, ${colorAccent})',`,
-    noShadow ? '    // sin sombra' : '    boxShadow: "0 18px 40px rgba(0,0,0,0.35)",',
-    '  }}',
-    '>',
-    '  Tu contenido',
-    '</motion.div>',
+      ? `        background: '${colorPrimary}',`
+      : `        background: 'linear-gradient(135deg, ${colorPrimary}, ${colorAccent})',`,
+    '        borderRadius: 16,',
+    '        padding: "28px 34px",',
+    '        color: "#0b110d",',
+    '        fontWeight: 700,',
+    noShadow ? '        boxShadow: "none",' : '        boxShadow: "0 18px 40px rgba(0,0,0,0.35)",',
+    '      }}',
+    '    >',
+    '      Tu contenido',
+    '    </motion.div>',
+    '  )',
+    '}',
   ].join('\n')
 }
 

@@ -538,7 +538,6 @@ function listCode(s: ControlSettings): string {
     count,
     drag,
     glow,
-    cascade,
     showSolo,
     showMute,
     showEye,
@@ -556,11 +555,32 @@ function listCode(s: ControlSettings): string {
   } = settingsOf(s)
   const activeBg = flat ? `'${colorPrimary}'` : `'linear-gradient(135deg, ${colorPrimary}, ${colorAccent})'`
   const headBg = flat ? `'${colorPrimary}'` : `'linear-gradient(135deg, ${colorPrimary}, ${colorAccent})'`
+
+  // plantilla BASE del snippet: reutiliza los iconos reales del componente
+  const snippetBase = BASE.slice(0, count)
+  const ICON_NAME: Array<[LucideIcon, string]> = [
+    [User, 'User'],
+    [Camera, 'Camera'],
+    [Gamepad2, 'Gamepad2'],
+    [Cylinder, 'Cylinder'],
+    [Circle, 'Circle'],
+    [Box, 'Box'],
+    [Lightbulb, 'Lightbulb'],
+    [Volume2, 'Volume2'],
+    [Type, 'Type'],
+    [RectangleHorizontal, 'RectangleHorizontal'],
+  ]
+  const iconNameOf = (b: (typeof BASE)[number]) => ICON_NAME.find(([icon]) => icon === b.Icon)?.[1] ?? 'Type'
+  const componentIcons = [...new Set(snippetBase.map(iconNameOf))].join(', ')
+  const iconImport = collapsable
+    ? `import { ChevronDown, ${componentIcons} } from 'lucide-react'`
+    : `import { ${componentIcons} } from 'lucide-react'`
+
   const shadow = noShadow
-    ? "            boxShadow: 'none' // sin sombra"
+    ? "                    boxShadow: 'none', // sin sombra"
     : glow
-      ? `            boxShadow: \`0 0 14px ${colorPrimary}66\` // brillo en solo`
-      : "            boxShadow: '0 8px 16px rgba(0,0,0,0.4)' // sin brillo"
+      ? `                    boxShadow: '0 0 14px ${colorPrimary}66', // brillo en solo`
+      : "                    boxShadow: '0 8px 16px rgba(0,0,0,0.4)', // sin brillo"
 
   const actionLines: string[] = []
   actionLines.push('          <div className="actions">')
@@ -589,87 +609,131 @@ function listCode(s: ControlSettings): string {
   }
   actionLines.push('          </div>')
   const actions = actionLines.join('\n')
+  const actionsIndented = actions
+    .replace('          <div className="actions">', '            <div className="actions">')
+    .replace('          </div>', '            </div>')
 
   return [
-    `// fondo de los botones activos${flat ? ' — color plano' : ' — degradado'}`,
-    `const activeBg = ${activeBg}`,
+    `import { useState } from 'react'`,
+    "import { motion, Reorder, AnimatePresence } from 'framer-motion'",
+    iconImport,
+    `import type { LucideIcon } from 'lucide-react'`,
     '',
-    '// .actions .del:hover { background: #e5484d; color: #fff } // cuadrado rojo + X blanca',
+    "const css = `.actions{display:flex;gap:6px;align-items:center}.actions button{width:24px;height:24px;border-radius:8px;border:1px solid transparent;background:transparent;color:#8d9294;font-size:13px;line-height:1;cursor:pointer;display:grid;place-items:center}.actions button:hover{background:rgba(255,255,255,0.08)}.actions .del:hover{background:#e5484d;color:#fff}.confirm{display:inline-flex;gap:6px;align-items:center;font-size:12px;color:#e5484d;white-space:nowrap}.confirm button{width:24px;height:24px;border-radius:8px;border:1px solid #3a3a3a;background:transparent;color:#f0f0f0;cursor:pointer}`",
+    "const inject = () => { if (!document.getElementById('snippet-css')) { const s = document.createElement('style'); s.id = 'snippet-css'; s.textContent = css; document.head.appendChild(s) } }",
     '',
-    'const BASE = [',
-    "  { id: 'player', name: 'Player', type: 'Jugador' },",
-    "  { id: 'camera', name: 'Camera2D', type: 'Cámara' },",
-    "  { id: 'control', name: 'Control', type: 'Controlador' },",
-    "  { id: 'cilindro', name: 'Cilindro', type: '3D primitivo' },",
-    "  { id: 'esfera', name: 'Esfera', type: '3D primitivo' },",
-    "  { id: 'cubo', name: 'Cubo', type: '3D primitivo' },",
-    ']',
+    'type Item = { id: string; name: string; type: string; Icon: LucideIcon }',
     '',
-    `const [order, setOrder] = useState(BASE.slice(0, ${count}).map(i => i.id))`,
-    'const [hidden, setHidden] = useState([])',
-    'const [muted, setMuted] = useState([])',
-    'const [solo, setSolo] = useState(null)',
-    'const [collapsed, setCollapsed] = useState(false)',
-    confirmDelete ? 'const [pendingDeleteId, setPendingDeleteId] = useState(null)' : '',
+    `const BASE: Item[] = [`,
+    ...snippetBase.map((b) => `  { id: '${b.id}', name: '${b.name}', type: '${b.type}', Icon: ${iconNameOf(b)} },`),
+    `]`,
     '',
-    'const visibleCount = order.filter(id => !hidden.includes(id)).length',
+    `export default function ComponentList() {`,
+    '  inject()',
+    '  // lista visible (se reordena al arrastrar)',
+    `  const [order, setOrder] = useState<string[]>(BASE.slice(0, ${count}).map(b => b.id))`,
+    '  const [hidden, setHidden] = useState<string[]>([]) // filas ocultas (Ojo)',
+    '  const [muted, setMuted] = useState<string[]>([])   // filas silenciadas (Mute)',
+    '  const [solo, setSolo] = useState<string | null>(null) // Solo deja las demás difuminadas',
+    '  const [collapsed, setCollapsed] = useState(false)',
+    confirmDelete ? '  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)' : '',
     '',
-    '// encabezado con color de marca y colapso opcional',
-    `<div style={{ background: ${headBg}, color: '#0b110d' }}>`,
+    '  const visibleCount = order.filter(id => !hidden.includes(id)).length',
+    `  const activeBg = ${activeBg}`,
+    `  const headBg = ${headBg}`,
+    '',
+    '  return (',
+    '    <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid #2a2a2a", fontFamily: "sans-serif" }}>',
+    '      {/* encabezado con color de marca */}',
+    '      <div',
+    '        style={{',
+    '          background: headBg,',
+    '          color: "#0b110d",',
+    '          display: "flex",',
+    '          alignItems: "center",',
+    '          gap: 10,',
+    '          padding: "10px 14px",',
+    '        }}',
+    '      >',
     collapsable
       ? collapseRight
-        ? '  // flecha de colapso a la DERECHA'
-        : `  <button aria-expanded={!collapsed} onClick={() => setCollapsed(c => !c)}><ChevronDown style={{ transform: collapsed ? 'rotate(-90deg)' : 'none' }} /></button>`
+        ? '        <div style={{ flex: 1 }} />'
+        : `        <button aria-expanded={!collapsed} onClick={() => setCollapsed(c => !c)} style={{ background: "transparent", border: "none", cursor: "pointer", padding: 4, borderRadius: 6 }}><ChevronDown size={18} style={{ transform: collapsed ? "rotate(-90deg)" : "none", transition: "transform 0.2s" }} /></button>`
       : '',
-    '  <div style={{ flex: 1 }}>',
-    "    <h3 style={{ margin: 0 }}>Mundo</h3>",
-    showCount ? '    <span style={{ opacity: 0.72 }}>{visibleCount} de {order.length} componentes</span>' : '',
-    '  </div>',
-    '  <span style={{ opacity: 0.72 }}>escena</span>',
-    collapseRight && collapsable ? '  // flecha de colapso a la derecha aquí' : '',
-    '</div>',
+    '        <div style={{ flex: 1, textAlign: ' + (collapsable && collapseRight ? '"right"' : '"left"') + ' }}>',
+    "          <h3 style={{ margin: 0, fontSize: 15 }}>Mundo</h3>",
+    showCount ? "          <span style={{ opacity: 0.72, fontSize: 12 }}>{visibleCount} de {order.length} componentes</span>" : '',
+    '        </div>',
+    collapseRight && collapsable
+      ? `        <button aria-expanded={!collapsed} onClick={() => setCollapsed(c => !c)} style={{ background: "transparent", border: "none", cursor: "pointer", padding: 4, borderRadius: 6 }}><ChevronDown size={18} style={{ transform: collapsed ? "rotate(-90deg)" : "none", transition: "transform 0.2s" }} /></button>`
+      : '',
+    '      </div>',
     '',
-    '// lista colapsable: los elementos se juntan al cerrar',
-    '<motion.div style={{ overflow: "hidden" }} animate={{ height: collapsed ? 0 : "auto" }}>',
-    `<Reorder.Group axis="y" values={order} onReorder={setOrder}>`,
-    '  <AnimatePresence>',
-    '    {order.map((id, i) => {',
-    '      const it = BASE.find(b => b.id === id)',
-    '      const isSolo = solo === it.id',
-    '      const isHidden = hidden.includes(it.id)',
-    '      const dim = (solo && !isSolo) || isHidden',
-    '      return (',
-    `        <Reorder.Item key={it.id} value={it.id}${drag ? '' : ' dragListener={false}'}`,
-    cascade ? '          initial={{ opacity: 0, y: 16 }}' : '',
-    '          animate={{ opacity: 1, y: 0 }}',
-    '          exit={{ opacity: 0, x: 24 }}',
-    '          style={{',
-    '            opacity: dim ? 0.45 : 1, // oculto o no-solo se atenúan',
-    `            border: isSolo ? \`1px solid ${colorPrimary}\` : '1px solid #353535',`,
+    '      {/* lista: colapso animado juntando/separando las filas */}',
+    '      <motion.div',
+    '        animate={{ height: collapsed ? 0 : "auto" }}',
+    '        style={{ overflow: "hidden", background: "#1b1b1b" }}',
+    '      >',
+    '        <Reorder.Group axis="y" values={order} onReorder={setOrder}>',
+    '          <AnimatePresence>',
+    '            {order.map((id, i) => {',
+    '              const it = BASE.find(b => b.id === id)!',
+    '              const isSolo = solo === it.id',
+    '              const isHidden = hidden.includes(it.id)',
+    '              const isMuted = muted.includes(it.id)',
+    '              const dim = (solo !== null && !isSolo) || isHidden',
+    '              return (',
+    `                <Reorder.Item key={it.id} value={it.id}${drag ? '' : ' dragListener={false}'}`,
+    '                  style={{',
+    '                    display: "flex",',
+    '                    alignItems: "center",',
+    '                    gap: 10,',
+    '                    padding: "8px 10px",',
+    '                    borderBottom: "1px solid #242424",',
+    `                    background: isSolo ? '${colorPrimary}' : "transparent",`,
+    `                    borderLeft: isSolo ? '3px solid ${colorPrimary}' : "3px solid transparent",`,
+    '                    opacity: dim ? 0.45 : 1,',
     shadow,
-    '          }}',
-    '        >',
-    showIcons ? '          <Icon className="item-icon" />' : '          {/* showIcons OFF: sin iconos */}',
-    confirmDelete
-      ? '          {pendingDeleteId === it.id ? ('
-      : '',
-    confirmDelete
-      ? '            <span className="confirm">¿Eliminar {it.name}? <button onClick={() => setOrder(o => o.filter(x => x !== it.id)); setPendingDeleteId(null)}>✓</button><button onClick={() => setPendingDeleteId(null)}>✕</button></span>'
-      : '',
-    confirmDelete ? '          ) : (' : '',
-    '            <strong style={{ color: isHidden ? \'#6b6b6b\' : muted.includes(it.id) ? \'#9aa0a3\' : \'#f0f0f0\', textDecoration: muted.includes(it.id) ? \'line-through\' : \'none\' }}>{it.name}</strong>',
-    showType ? '            <span className="type">{it.type}</span>' : '            {/* showType OFF: sin descripción */}',
-    actions.replace('          <div className="actions">', '            <div className="actions">').replace(
-      '          </div>',
-      '            </div>',
-    ),
-    confirmDelete ? '          )}' : '',
-    '        </Reorder.Item>',
-    '      )',
-    '    })}',
-    '  </AnimatePresence>',
-    '</Reorder.Group>',
-    '</motion.div>',
+    '                  }}',
+    '                  initial={{ opacity: 0, y: 16 }}',
+    '                  animate={{ opacity: 1, y: 0 }}',
+    '                  exit={{ opacity: 0, x: 24 }}',
+    '                  transition={{ duration: 0.25 }}',
+    '                >',
+    showIcons ? "                  <it.Icon size={16} color={dim ? '#6b6b6b' : '#9aa0a3'} />" : '                  {/* showIcons OFF: sin iconos */}',
+    confirmDelete ? '                  {pendingDeleteId === it.id ? (' : '',
+    confirmDelete ? '                    <>' : '',
+    '                    <strong',
+    '                      style={{',
+    '                        flex: 1,',
+    "                        fontSize: 13.5,",
+    '                        color: isHidden ? "#6b6b6b" : isMuted ? "#9aa0a3" : "#f0f0f0",',
+    '                        textDecoration: isMuted ? "line-through" : "none",',
+    '                      }}',
+    '                    >',
+    '                      {it.name}',
+    showType ? '                      <span style={{ display: "block", fontSize: 11, color: "#6b6b6b", fontWeight: 400 }}>{it.type}</span>' : '',
+    '                    </strong>',
+    confirmDelete ? '                    <span className="confirm">¿Eliminar {it.name}?' : '',
+    confirmDelete ? '                      <button' : '',
+    confirmDelete ? '                        onClick={() => { setOrder(o => o.filter(x => x !== it.id)); setPendingDeleteId(null) }}' : '',
+    confirmDelete ? '                        style={{ background: "#e5484d", color: "#fff" }}' : '',
+    confirmDelete ? '                      >✓</button>' : '',
+    confirmDelete ? '                      <button onClick={() => setPendingDeleteId(null)}>✕</button>' : '',
+    confirmDelete ? '                    </span>' : '',
+    confirmDelete ? '                    </>' : '',
+    confirmDelete ? '                  ) : (' : '',
+    actionsIndented,
+    confirmDelete ? '                  )}' : '',
+    '                </Reorder.Item>',
+    '              )',
+    '            })}',
+    '          </AnimatePresence>',
+    '        </Reorder.Group>',
+    '      </motion.div>',
+    '    </div>',
+    '  )',
+    '}',
   ].join('\n')
 }
 

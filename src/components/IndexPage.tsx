@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { BookOpen } from 'lucide-react'
+import { BookOpen, Copy, Check } from 'lucide-react'
 import { animations } from '../animations/registry'
 import type { AnimationEntry, ControlSettings } from '../types'
 
@@ -55,6 +55,17 @@ function AnimationCard({ a }: { a: AnimationEntry }) {
 }
 
 export default function IndexPage() {
+  const [copied, setCopied] = useState(false)
+
+  const install = 'npm install kukul'
+
+  const copy = async () => {
+    if (!navigator.clipboard) return
+    await navigator.clipboard.writeText(install)
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 1600)
+  }
+
   return (
     <div className="page">
       <div className="topbar">
@@ -76,9 +87,12 @@ export default function IndexPage() {
           distintos proyectos, acumulé una biblioteca amplia y decidí compartirla con la
           comunidad. Son gratuitas, de código abierto y completamente personalizables.
         </p>
-        <a className="install-line" href="#/docs">
-          <code>npm install kukul</code>
-        </a>
+        <div className="install-line">
+          <code>{install}</code>
+          <button onClick={copy} title="Copiar comando">
+            {copied ? <Check size={14} /> : <Copy size={14} />}
+          </button>
+        </div>
       </div>
 
       <div className="grid">
