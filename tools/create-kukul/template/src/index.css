@@ -1,0 +1,49 @@
+:root {
+  color-scheme: dark;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: #0b110d;
+  color: #f0f0f0;
+}
+
+* { box-sizing: border-box }
+
+body { margin: 0; min-width: 320px }
+
+#root { min-height: 100vh }
+
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+.hero h1 { font-size: 34px; margin: 0 0 6px }
+.hero p { color: #9aa0a3; margin: 0 0 4px }
+.hero code { color: #00ffb2 }
+
+.grid {
+  margin-top: 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 22px;
+}
+
+.card {
+  background: #131713;
+  border: 1px solid #27332b;
+  border-radius: 14px;
+  padding: 20px;
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+}
+
+.card h2 {
+  position: absolute;
+  top: 14px; left: 16px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: #c9d1cb;
+  margin: 0;
+}

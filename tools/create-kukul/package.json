@@ -1,0 +1,25 @@
+{
+  "name": "@gerardolcdf/create-kukul",
+  "version": "1.0.0",
+  "description": "Scaffolder: genera un proyecto Vite + React + TS con @gerardolcdf/kukul preinstalado. npx create-kukul [nombre]",
+  "type": "module",
+  "bin": {
+    "create-kukul": "bin/create-kukul.mjs"
+  },
+  "files": [
+    "bin",
+    "template"
+  ],
+  "exports": {
+    "./bin": "./bin/create-kukul.mjs"
+  },
+  "keywords": [
+    "kukul",
+    "animaciones",
+    "react",
+    "vite",
+    "scaffold",
+    "create"
+  ],
+  "license": "MIT"
+}

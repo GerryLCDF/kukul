@@ -1,0 +1,38 @@
+.card {
+  background: #10141028;
+  border: 1px solid #2a2f2a;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.card h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  color: #cdd6cd;
+}
+.stage {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+}
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 32px;
+}
+.hero code {
+  background: #1a2b1f;
+  padding: 2px 8px;
+  border-radius: 6px;
+  color: #7ee8a0;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
